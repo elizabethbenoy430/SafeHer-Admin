@@ -1,5 +1,8 @@
+import 'package:admin_app/dashboard.dart';
+import 'package:admin_app/homepage.dart';
+import 'package:admin_app/main.dart';
 import 'package:flutter/material.dart';
-import 'homepage.dart'; // Import your AdminHome page
+// Import your AdminHome page
 
 class AdminLoginPage extends StatefulWidget {
   const AdminLoginPage({super.key});
@@ -13,13 +16,28 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isObscure = true;
+    bool _isLoading = false;
 
-  void _login() {
+void _handleLogin() async {
     if (_formKey.currentState!.validate()) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const Dashboard()),
+      setState(() => _isLoading = true);
+
+      // SIMULATE API CALL
+      await Future.delayed(const Duration(seconds: 2));
+
+      await supabase.auth.signInWithPassword(
+        email: _emailController.text,
+        password: _passwordController.text,
       );
+      if (mounted) {
+        setState(() => _isLoading = false);
+        
+        // Navigate to Dashboard
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) =>  AdminDashboard()),
+        );
+      }
     }
   }
 
@@ -185,7 +203,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                             const SizedBox(height: 10),
 
                             // 🔴 Glowing Login Button
-                            AnimatedGlowButton(onTap: _login),
+                            AnimatedGlowButton(onTap: _handleLogin),
                           ],
                         ),
                       ),
