@@ -1,5 +1,6 @@
 import 'package:admin_app/category.dart';
 import 'package:admin_app/district.dart';
+import 'package:admin_app/myprofile.dart';
 import 'package:admin_app/place.dart';
 import 'package:flutter/material.dart';
 
@@ -129,7 +130,7 @@ class DashboardContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          topBar(),
+          topBar(context),
           const SizedBox(height: 20),
           Expanded(
             child: Row(
@@ -154,7 +155,7 @@ class DashboardContent extends StatelessWidget {
     );
   }
 
-  Widget topBar() {
+  Widget topBar(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -167,10 +168,15 @@ class DashboardContent extends StatelessWidget {
           ),
         ),
         Row(
-          children: const [
+          children: [
             CircleAvatar(
               backgroundColor: Colors.greenAccent,
-              child: Icon(Icons.person, color: Colors.black),
+              child: IconButton(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => MyProfile()));
+                },
+                icon: const Icon(Icons.person, color: Colors.black),
+              ),
             ),
           ],
         ),

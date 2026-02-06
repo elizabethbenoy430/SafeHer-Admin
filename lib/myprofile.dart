@@ -9,7 +9,7 @@ class MyProfile extends StatefulWidget {
 }
 
 class _MyProfileState extends State<MyProfile> {
-  List<dynamic> adminData = [];
+  Map<String, dynamic>? adminData;
   bool isLoading = true;
   bool obscurePassword = true;
 
@@ -22,12 +22,12 @@ class _MyProfileState extends State<MyProfile> {
  Future<void> fetchAdminDetails() async {
   try {
     // Ideally, add a .eq() filter here to get the specific admin
-    final response = await supabase.from('tbl_admin').select().single();
+    final response = await supabase.from('tbl_admin').select().eq('admin_id', supabase.auth.currentUser!.id);
 
     if (!mounted) return;
 
     setState(() {
-      adminData = [response];
+      adminData = response.isNotEmpty ? response[0] : null;
       isLoading = false;
     });
   } catch (e) {
@@ -154,8 +154,8 @@ class _MyProfileState extends State<MyProfile> {
                           ),
                           const SizedBox(height: 15),
                           Text(
-                            adminData.isNotEmpty
-                                ? adminData[0]['name'] ?? ''
+                            adminData != null
+                                ? adminData!['admin_name'] ?? ''
                                 : '',
                             style: const TextStyle(
                               color: Colors.white,
@@ -165,8 +165,8 @@ class _MyProfileState extends State<MyProfile> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            adminData.isNotEmpty
-                                ? adminData[0]['email'] ?? ''
+                            adminData != null
+                                ? adminData!['admin_email'] ?? ''
                                 : '',
                             style: const TextStyle(
                               color: Colors.white70,
@@ -183,15 +183,15 @@ class _MyProfileState extends State<MyProfile> {
                     infoCard(
                       icon: Icons.person_outline,
                       title: "Name",
-                      value: adminData.isNotEmpty
-                          ? adminData[0]['name'] ?? ''
+                      value: adminData != null
+                          ? adminData!['admin_name'] ?? ''
                           : '',
                     ),
                     infoCard(
                       icon: Icons.email_outlined,
                       title: "Email",
-                      value: adminData.isNotEmpty
-                          ? adminData[0]['email'] ?? ''
+                      value: adminData != null
+                          ? adminData!['admin_email'] ?? ''
                           : '',
                     ),
                     infoCard(
@@ -199,8 +199,8 @@ class _MyProfileState extends State<MyProfile> {
                       title: "Password",
                       value: obscurePassword
                           ? "********"
-                          : (adminData.isNotEmpty
-                                ? adminData[0]['password'] ?? ''
+                          : (adminData != null
+                                ? adminData!['admin_password'] ?? ''
                                 : ''),
                       trailing: IconButton(
                         icon: Icon(
