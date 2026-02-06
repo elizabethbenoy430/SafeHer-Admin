@@ -2,6 +2,7 @@
 import 'package:admin_app/admin_registration.dart';
 import 'package:admin_app/dashboard.dart';
 import 'package:admin_app/login.dart';
+import 'package:admin_app/myprofile.dart';
 
 import 'package:flutter/material.dart';
 
@@ -16,8 +17,8 @@ Future<void> main() async {
   runApp( MainApp());
 }
     final supabase = Supabase.instance.client;   
-    
-     
+
+
 
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
@@ -25,7 +26,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: AdminLoginPage(),
+      home: MyProfile(),
     );
   }
 }
