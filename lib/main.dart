@@ -1,8 +1,7 @@
 
-import 'package:admin_app/admin_registration.dart';
-import 'package:admin_app/dashboard.dart';
+
 import 'package:admin_app/login.dart';
-import 'package:admin_app/myprofile.dart';
+
 
 import 'package:flutter/material.dart';
 
