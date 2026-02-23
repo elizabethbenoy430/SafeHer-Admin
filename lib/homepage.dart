@@ -1,3 +1,4 @@
+import 'package:admin_app/viewcomplaints.dart';
 import 'package:flutter/material.dart';
 
 class Dashboard extends StatelessWidget {
@@ -153,7 +154,9 @@ class SafeHerDrawer extends StatelessWidget {
           ),
 
           drawerButton(Icons.sos, "SOS Alerts", context),
-          drawerButton(Icons.report, "View Complaints", context),
+          drawerButton(Icons.description, "View Complaints", context, onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const ViewComplaints()));
+          }),
           drawerButton(Icons.bar_chart, "Report", context),
           drawerButton(Icons.location_on, "Live Tracking", context),
           drawerButton(Icons.settings, "Settings", context),
@@ -166,7 +169,7 @@ class SafeHerDrawer extends StatelessWidget {
     );
   }
 
-  Widget drawerButton(IconData icon, String title, BuildContext context) {
+  Widget drawerButton(IconData icon, String title, BuildContext context, {VoidCallback? onTap}) {
     return ListTile(
       leading: Icon(icon, color: Colors.greenAccent),
       title: Text(
@@ -175,6 +178,7 @@ class SafeHerDrawer extends StatelessWidget {
       ),
       onTap: () {
         Navigator.pop(context);
+        onTap?.call();
       },
     );
   }

@@ -2,6 +2,7 @@ import 'package:admin_app/category.dart';
 import 'package:admin_app/district.dart';
 import 'package:admin_app/myprofile.dart';
 import 'package:admin_app/place.dart';
+import 'package:admin_app/viewcomplaints.dart';
 import 'package:flutter/material.dart';
 
 /* ===================== DASHBOARD ===================== */
@@ -59,7 +60,7 @@ class AdminSidebar extends StatelessWidget {
             const AdminCategoryPage(),
           ),
 
-          sidebarButton(context, Icons.report, "Complaints", false, null),
+          sidebarButton(context, Icons.report, "Complaints", false, ViewComplaints()),
           sidebarButton(context, Icons.location_on, "Live Tracking", false, null),
           sidebarButton(context, Icons.bar_chart, "Reports", false, null),
           sidebarButton(context, Icons.bar_chart, "Place", false, const Place()),
