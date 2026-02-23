@@ -51,7 +51,9 @@ class _ViewComplaintsState extends State<ViewComplaints> {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFF2C1C1C), Color(0xFF4A3B3B)]),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2C1C1C), Color(0xFF4A3B3B)],
+        ),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Padding(
@@ -61,30 +63,47 @@ class _ViewComplaintsState extends State<ViewComplaints> {
           children: [
             Text(
               "From: ${complaint['tbl_user']?['user_name'] ?? 'Anonymous'}",
-              style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.orangeAccent,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
-            Text(complaint['complaint_content'] ?? "", style: const TextStyle(color: Colors.white)),
+            Text(
+              complaint['complaint_content'] ?? "",
+              style: const TextStyle(color: Colors.white),
+            ),
             const Divider(color: Colors.white10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (complaint['complaint_file'] != null && complaint['complaint_file'] != "")
+                if (complaint['complaint_file'] != null &&
+                    complaint['complaint_file'] != "")
                   IconButton(
-                    icon: const Icon(Icons.attach_file, color: Colors.blueAccent),
+                    icon: const Icon(
+                      Icons.attach_file,
+                      color: Colors.blueAccent,
+                    ),
                     onPressed: () => openFile(complaint['complaint_file']),
                   ),
+                if (complaint['complaint_status'] == "Pending")
                 ElevatedButton(
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ReplyComplaint(complaint: complaint),
+                        builder: (context) =>
+                            ReplyComplaint(complaint: complaint),
                       ),
                     ).then((_) => viewComplaint()); // Auto-refresh on return
                   },
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent),
-                  child: const Text("Reply", style: TextStyle(color: Colors.black)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orangeAccent,
+                  ),
+                  child: const Text(
+                    "Reply",
+                    style: TextStyle(color: Colors.black),
+                  ),
                 ),
               ],
             ),
@@ -98,13 +117,17 @@ class _ViewComplaintsState extends State<ViewComplaints> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
-      appBar: AppBar(title: const Text("Complaints"), backgroundColor: Colors.black),
+      appBar: AppBar(
+        title: const Text("Complaints"),
+        backgroundColor: Colors.black,
+      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: complaintList.length,
-              itemBuilder: (context, index) => buildComplaintCard(complaintList[index], index),
+              itemBuilder: (context, index) =>
+                  buildComplaintCard(complaintList[index], index),
             ),
     );
   }
