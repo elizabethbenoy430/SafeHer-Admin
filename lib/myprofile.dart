@@ -1,5 +1,7 @@
+import 'dart:ui';
 import 'package:admin_app/main.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MyProfile extends StatefulWidget {
   const MyProfile({super.key});
@@ -9,9 +11,9 @@ class MyProfile extends StatefulWidget {
 }
 
 class _MyProfileState extends State<MyProfile> {
+  final SupabaseClient supabase = Supabase.instance.client;
   Map<String, dynamic>? adminData;
   bool isLoading = true;
-  bool obscurePassword = true;
 
   @override
   void initState() {
@@ -19,79 +21,112 @@ class _MyProfileState extends State<MyProfile> {
     fetchAdminDetails();
   }
 
- Future<void> fetchAdminDetails() async {
-  try {
-    // Ideally, add a .eq() filter here to get the specific admin
-    final response = await supabase.from('tbl_admin').select().eq('admin_id', supabase.auth.currentUser!.id);
+  Future<void> fetchAdminDetails() async {
+    try {
+      final user = supabase.auth.currentUser;
 
-    if (!mounted) return;
+      if (user == null) {
+        setState(() => isLoading = false);
+        return;
+      }
 
-    setState(() {
-      adminData = response.isNotEmpty ? response[0] : null;
-      isLoading = false;
-    });
-  } catch (e) {
-    if (!mounted) return;
-    setState(() => isLoading = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Error: $e")),
-    );
+      // 🔍 DEBUG: Copy this ID from your console and paste it into tbl_admin 'admin_id'
+      debugPrint("Logged in Auth UID: ${user.id}");
+
+      final response = await supabase
+          .from('tbl_admin')
+          .select('admin_name, admin_email')
+          .eq('admin_id', user.id)
+          .maybeSingle();
+
+      debugPrint("Supabase Table Response: $response");
+
+      if (!mounted) return;
+
+      setState(() {
+        if (response != null) {
+          // Data found in table
+          adminData = response;
+        } else {
+          // FALLBACK: If table is empty/mismatched, show Auth data
+          adminData = {
+            'admin_name': 'Admin User (Not in Table)',
+            'admin_email': user.email ?? 'No Email Found',
+          };
+        }
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint("Fetch Error: $e");
+      if (!mounted) return;
+      setState(() => isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.redAccent),
+      );
+    }
   }
-}
+
+  Future<void> handleSignOut() async {
+    await supabase.auth.signOut();
+    if (mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const MainApp()),
+        (route) => false,
+      );
+    }
+  }
 
   Widget infoCard({
     required IconData icon,
     required String title,
     required String value,
-    Widget? trailing,
   }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.greenAccent.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withOpacity(0.1)),
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF4CAF50).withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: const Color(0xFF4CAF50), size: 28),
-          ),
-          const SizedBox(width: 18),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00E676).withOpacity(0.1),
+                  shape: BoxShape.circle,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Icon(icon, color: const Color(0xFF00E676), size: 24),
+              ),
+              const SizedBox(width: 18),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(color: Colors.white54, fontSize: 12),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      value,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          if (trailing != null) trailing,
-        ],
+        ),
       ),
     );
   }
@@ -99,127 +134,101 @@ class _MyProfileState extends State<MyProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          "Admin Profile",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-        ),
-        centerTitle: true,
-      ),
-      body: isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
-            )
-          : SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    // 🔰 HEADER CARD WITH ICON
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 30),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF4CAF50), Color(0xFF81C784)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.4),
-                            blurRadius: 10,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          const CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.white,
-                            child: Icon(
-                              Icons.admin_panel_settings,
-                              size: 50,
-                              color: Color(0xFF4CAF50),
-                            ),
-                          ),
-                          const SizedBox(height: 15),
-                          Text(
-                            adminData != null
-                                ? adminData!['admin_name'] ?? ''
-                                : '',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            adminData != null
-                                ? adminData!['admin_email'] ?? ''
-                                : '',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+      body: Stack(
+        children: [
+          // 🔹 Background
+          Positioned.fill(
+            child: Image.asset('assets/bgl.png', fit: BoxFit.cover),
+          ),
+          Positioned.fill(
+            child: Container(color: Colors.black.withOpacity(0.65)),
+          ),
 
-                    const SizedBox(height: 30),
-
-                    // 🔹 ADMIN INFO CARDS
-                    infoCard(
-                      icon: Icons.person_outline,
-                      title: "Name",
-                      value: adminData != null
-                          ? adminData!['admin_name'] ?? ''
-                          : '',
-                    ),
-                    infoCard(
-                      icon: Icons.email_outlined,
-                      title: "Email",
-                      value: adminData != null
-                          ? adminData!['admin_email'] ?? ''
-                          : '',
-                    ),
-                    infoCard(
-                      icon: Icons.lock_outline,
-                      title: "Password",
-                      value: obscurePassword
-                          ? "********"
-                          : (adminData != null
-                                ? adminData!['admin_password'] ?? ''
-                                : ''),
-                      trailing: IconButton(
-                        icon: Icon(
-                          obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: Colors.grey,
+          isLoading
+              ? const Center(child: CircularProgressIndicator(color: Color(0xFF00E676)))
+              : SafeArea(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        // Custom Header
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                            const Text("ADMIN PROFILE",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 2)),
+                            const SizedBox(width: 48),
+                          ],
                         ),
-                        onPressed: () {
-                          setState(() {
-                            obscurePassword = !obscurePassword;
-                          });
-                        },
-                      ),
+                        const SizedBox(height: 40),
+
+                        // Avatar
+                        Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(colors: [Color(0xFF00E676), Colors.cyanAccent]),
+                          ),
+                          child: const CircleAvatar(
+                            radius: 55,
+                            backgroundColor: Color(0xFF121212),
+                            child: Icon(Icons.person, size: 60, color: Colors.white),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        
+                        Text(
+                          adminData?['admin_name'] ?? 'Admin',
+                          style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                        ),
+                        const Text("Authorized Administrator", style: TextStyle(color: Colors.white38, fontSize: 13)),
+                        
+                        const SizedBox(height: 40),
+
+                        // Cards
+                        infoCard(
+                          icon: Icons.badge_outlined,
+                          title: "ADMIN NAME",
+                          value: adminData?['admin_name'] ?? 'Not Found',
+                        ),
+                        infoCard(
+                          icon: Icons.alternate_email_rounded,
+                          title: "EMAIL ADDRESS",
+                          value: adminData?['admin_email'] ?? 'Not Found',
+                        ),
+
+                        const SizedBox(height: 50),
+
+                        // Logout
+                        SizedBox(
+                          width: double.infinity,
+                          height: 55,
+                          child: ElevatedButton(
+                            onPressed: handleSignOut,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.redAccent.withOpacity(0.1),
+                              foregroundColor: Colors.redAccent,
+                              side: const BorderSide(color: Colors.redAccent, width: 0.5),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                              elevation: 0,
+                            ),
+                            child: const Text("SIGN OUT", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
+        ],
+      ),
     );
   }
 }

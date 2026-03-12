@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -14,16 +15,19 @@ class _ReplyComplaintState extends State<ReplyComplaint> {
   final TextEditingController replyController = TextEditingController();
   bool isSubmitting = false;
 
+  // Green color constant for consistency
+  final Color themeGreen = const Color(0xFF00E676); 
+
   Future<void> replyComplaint() async {
     final String replyText = replyController.text.trim();
     
-    // 1. Check if reply is empty
     if (replyText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please type a reply")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please type a reply"))
+      );
       return;
     }
 
-    // 2. SAFETY CHECK: Check if ID exists to avoid the Null Type Error
     final dynamic complaintId = widget.complaint['complaint_id'];
     if (complaintId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -38,7 +42,7 @@ class _ReplyComplaintState extends State<ReplyComplaint> {
       await supabase.from('tbl_complaint').update({
         'complaint_reply': replyText,
         'complaint_status': 'Replied',
-      }).eq('complaint_id', complaintId); // ✅ Using the validated ID
+      }).eq('complaint_id', complaintId);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -61,44 +65,125 @@ class _ReplyComplaintState extends State<ReplyComplaint> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      appBar: AppBar(backgroundColor: Colors.black, title: const Text("Reply")),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("User's Complaint:", style: TextStyle(color: Colors.orangeAccent)),
-            const SizedBox(height: 8),
-            Text(widget.complaint['complaint_content'] ?? "No content", 
-                 style: const TextStyle(color: Colors.white70)),
-            const SizedBox(height: 20),
-            TextField(
-              controller: replyController,
-              maxLines: 5,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: "Enter response...",
-                hintStyle: const TextStyle(color: Colors.white24),
-                filled: true,
-                fillColor: Colors.white10,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
+      backgroundColor: const Color(0xFF0F0F12),
+      body: Stack(
+        children: [
+          // Background Image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/bgl.png',
+              fit: BoxFit.cover,
             ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: isSubmitting ? null : replyComplaint,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent),
-                child: isSubmitting
-                    ? const CircularProgressIndicator(color: Colors.black)
-                    : const Text("SUBMIT", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+          ),
+          // Dark Overlay
+          Positioned.fill(
+            child: Container(color: Colors.black.withOpacity(0.55)),
+          ),
+          
+          Column(
+            children: [
+              AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                iconTheme: const IconThemeData(color: Colors.white),
+                title: const Text("Send Response", 
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w300)),
+                centerTitle: true,
               ),
-            ),
-          ],
-        ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Label (Updated to Green)
+                      Text("ORIGINAL COMPLAINT", 
+                        style: TextStyle(color: themeGreen, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                      const SizedBox(height: 12),
+                      
+                      // Glass Box for Content
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.white.withOpacity(0.1)),
+                            ),
+                            child: Text(
+                              widget.complaint['complaint_content'] ?? "No content available",
+                              style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.5),
+                            ),
+                          ),
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 32),
+                      
+                      // Label (Updated to Green)
+                      Text("YOUR REPLY", 
+                        style: TextStyle(color: themeGreen, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                      const SizedBox(height: 12),
+                      
+                      // Input Box
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: TextField(
+                            controller: replyController,
+                            maxLines: 6,
+                            style: const TextStyle(color: Colors.white),
+                            cursorColor: themeGreen,
+                            decoration: InputDecoration(
+                              hintText: "Type your message here...",
+                              hintStyle: const TextStyle(color: Colors.white24),
+                              filled: true,
+                              fillColor: Colors.white.withOpacity(0.05),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide(color: themeGreen),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 32),
+                      
+                      // 🔹 SUBMIT BUTTON (Now Green)
+                      SizedBox(
+                        width: double.infinity,
+                        height: 55,
+                        child: ElevatedButton(
+                          onPressed: isSubmitting ? null : replyComplaint,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: themeGreen,
+                            foregroundColor: Colors.black,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            elevation: 0,
+                          ),
+                          child: isSubmitting
+                              ? const CircularProgressIndicator(color: Colors.black)
+                              : const Text("SUBMIT REPLY", 
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -77,14 +77,18 @@ class _ViewstationlistState extends State<Viewstationlist> {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1F1C2C), Color(0xFF928DAB)],
+        // Updated colors with slight opacity to let the background show through
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF1F1C2C).withOpacity(0.8),
+            const Color(0xFF928DAB).withOpacity(0.8),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 8),
+          BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10),
         ],
       ),
       child: Padding(
@@ -110,7 +114,7 @@ class _ViewstationlistState extends State<Viewstationlist> {
                 children: [
                   Text(
                     user['station_name'] ?? 'Unknown Station',
-                    style: const TextStyle(color: Colors.white, fontSize: 17),
+                    style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w500),
                   ),
 
                   infoRow(Icons.email, user['station_email'] ?? "N/A"),
@@ -123,10 +127,10 @@ class _ViewstationlistState extends State<Viewstationlist> {
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: user['station_status'] == 'accepted'
-                          ? Colors.green
+                          ? Colors.green.withOpacity(0.8)
                           : user['station_status'] == 'rejected'
-                              ? Colors.red
-                              : Colors.orange,
+                              ? Colors.red.withOpacity(0.8)
+                              : Colors.orange.withOpacity(0.8),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -180,18 +184,18 @@ class _ViewstationlistState extends State<Viewstationlist> {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        backgroundColor: const Color(0xFF0F0F0F),
+        backgroundColor: Colors.black, // Fallback color
 
         // APP BAR
         appBar: AppBar(
-          backgroundColor: Colors.black,
+          backgroundColor: Colors.black.withOpacity(0.9), // Darkened appbar for focus
           elevation: 0,
-          centerTitle: true, // CENTER TITLE
+          centerTitle: true,
           title: const Text(
             "Station Directory",
             style: TextStyle(
               color: Colors.white,
-              fontWeight: FontWeight.w300, // NOT BOLD
+              fontWeight: FontWeight.w300,
               fontSize: 18,
             ),
           ),
@@ -207,16 +211,24 @@ class _ViewstationlistState extends State<Viewstationlist> {
           ),
         ),
 
-        // BODY
-        body: isLoading
-            ? const Center(child: CircularProgressIndicator(color: Colors.tealAccent))
-            : TabBarView(
-                children: [
-                  buildUserList(pendingStations, showActions: true),
-                  buildUserList(acceptedStations),
-                  buildUserList(rejectedStations),
-                ],
-              ),
+        // BODY WITH BACKGROUND IMAGE
+        body: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("assets/bgl.png"), // Full-screen background
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: isLoading
+              ? const Center(child: CircularProgressIndicator(color: Colors.tealAccent))
+              : TabBarView(
+                  children: [
+                    buildUserList(pendingStations, showActions: true),
+                    buildUserList(acceptedStations),
+                    buildUserList(rejectedStations),
+                  ],
+                ),
+        ),
       ),
     );
   }
