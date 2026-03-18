@@ -27,6 +27,7 @@ class _ViewSOSActivityState extends State<ViewSOSActivity> {
           .select('''
           sos_id,
           sos_status,
+          sos_seen,
           created_at,
           tbl_user(user_name)
         ''')
@@ -38,10 +39,7 @@ class _ViewSOSActivityState extends State<ViewSOSActivity> {
       });
     } catch (e) {
       print("ERROR: $e");
-
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
     }
   }
 
@@ -53,7 +51,7 @@ class _ViewSOSActivityState extends State<ViewSOSActivity> {
         backgroundColor: Colors.black,
         elevation: 0,
         title: const Text(
-          "SOS Activity",
+          "SOS Activity (Admin)",
           style: TextStyle(
             color: Colors.greenAccent,
             fontWeight: FontWeight.bold,
@@ -63,23 +61,18 @@ class _ViewSOSActivityState extends State<ViewSOSActivity> {
       ),
       body: Stack(
         children: [
-
-          /// BACKGROUND IMAGE
           Positioned.fill(
             child: Image.asset(
               "assets/bgl.png",
               fit: BoxFit.cover,
             ),
           ),
-
-          /// DARK OVERLAY
           Positioned.fill(
             child: Container(
               color: Colors.black.withOpacity(0.85),
             ),
           ),
 
-          /// CONTENT
           isLoading
               ? const Center(
                   child: CircularProgressIndicator(
@@ -106,81 +99,116 @@ class _ViewSOSActivityState extends State<ViewSOSActivity> {
                             color: const Color(0xFF111111),
                             borderRadius: BorderRadius.circular(15),
                             border: Border.all(
-                              color: Colors.greenAccent.withOpacity(0.3),
+                              color:
+                                  Colors.greenAccent.withOpacity(0.3),
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.greenAccent.withOpacity(0.1),
-                                blurRadius: 10,
-                                spreadRadius: 1,
-                              )
-                            ],
                           ),
-                          child: Row(
+                          child: Column(
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
                             children: [
-
-                              /// SL NO CIRCLE
-                              CircleAvatar(
-                                radius: 18,
-                                backgroundColor: Colors.greenAccent,
-                                child: Text(
-                                  "${index + 1}",
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-
-                              const SizedBox(width: 15),
-
-                              /// DETAILS
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-
-                                    /// USER NAME
-                                    Text(
-                                      sos['tbl_user']?['user_name'] ??
-                                          "Unknown User",
+                              Row(
+                                children: [
+                                  /// NUMBER
+                                  CircleAvatar(
+                                    radius: 18,
+                                    backgroundColor:
+                                        Colors.greenAccent,
+                                    child: Text(
+                                      "${index + 1}",
                                       style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                        fontWeight:
+                                            FontWeight.bold,
                                       ),
                                     ),
+                                  ),
 
-                                    const SizedBox(height: 5),
+                                  const SizedBox(width: 15),
 
-                                    /// TIME
-                                    Text(
-                                      sos['created_at'] ?? "",
-                                      style: const TextStyle(
-                                        color: Colors.white54,
-                                        fontSize: 12,
+                                  /// DETAILS
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          sos['tbl_user']
+                                                  ?['user_name'] ??
+                                              "Unknown User",
+                                          style:
+                                              const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight:
+                                                FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Text(
+                                          sos['created_at'] ?? "",
+                                          style:
+                                              const TextStyle(
+                                            color: Colors.white54,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  /// SOS STATUS
+                                  Container(
+                                    padding:
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          Colors.greenAccent,
+                                      borderRadius:
+                                          BorderRadius.circular(
+                                              20),
+                                    ),
+                                    child: Text(
+                                      sos['sos_status'] ??
+                                          "Unknown",
+                                      style:
+                                          const TextStyle(
+                                        color: Colors.black,
+                                        fontWeight:
+                                            FontWeight.bold,
                                       ),
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
 
-                              /// STATUS BADGE
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: Colors.greenAccent,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  sos['sos_status'] ?? "Unknown",
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
+                              const SizedBox(height: 10),
+
+                              /// 🔥 SEEN STATUS (MAIN PART)
+                              Row(
+                                children: [
+                                  const Text(
+                                    "Station Status: ",
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 13,
+                                    ),
                                   ),
-                                ),
-                              )
+                                  Text(
+                                    sos['sos_seen'] ?? "Not Seen",
+                                    style: TextStyle(
+                                      color: sos['sos_seen'] ==
+                                              "Seen"
+                                          ? Colors.greenAccent
+                                          : Colors.redAccent,
+                                      fontWeight:
+                                          FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
                         );
